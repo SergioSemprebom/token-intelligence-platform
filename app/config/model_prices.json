@@ -1,0 +1,17 @@
+{
+  "_aviso": "Valores demonstrativos de exemplo, apenas para fins de teste da plataforma. NAO refletem precos comerciais reais e podem estar desatualizados. Atualize este arquivo com os precos vigentes antes de usar em producao.",
+  "modelos": {
+    "gpt-4o": {
+      "preco_entrada_por_1m": "5.00",
+      "preco_saida_por_1m": "15.00"
+    },
+    "gpt-4o-mini": {
+      "preco_entrada_por_1m": "0.15",
+      "preco_saida_por_1m": "0.60"
+    },
+    "gpt-3.5-turbo": {
+      "preco_entrada_por_1m": "0.50",
+      "preco_saida_por_1m": "1.50"
+    }
+  }
+}

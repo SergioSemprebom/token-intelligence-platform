@@ -1,0 +1,42 @@
+// ============================================================
+// medidas_qualidade.dax — Medidas de sucesso, erro e fallback
+// Tabelas do modelo: fProcessamentos
+// Formato sugerido: percentual com 1-2 casas decimais para as taxas;
+// número inteiro para as contagens
+// ============================================================
+
+Processamentos com Sucesso =
+CALCULATE(
+    [Total Processamentos],
+    fProcessamentos[sucesso] = TRUE()
+)
+
+Processamentos com Erro =
+CALCULATE(
+    [Total Processamentos],
+    fProcessamentos[sucesso] = FALSE()
+)
+
+Taxa de Sucesso % =
+DIVIDE(
+    [Processamentos com Sucesso],
+    [Total Processamentos]
+)
+
+Taxa de Erro % =
+DIVIDE(
+    [Processamentos com Erro],
+    [Total Processamentos]
+)
+
+Fallbacks Utilizados =
+CALCULATE(
+    [Total Processamentos],
+    fProcessamentos[fallback_utilizado] = TRUE()
+)
+
+Taxa de Fallback % =
+DIVIDE(
+    [Fallbacks Utilizados],
+    [Total Processamentos]
+)

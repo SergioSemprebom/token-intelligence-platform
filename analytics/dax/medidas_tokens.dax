@@ -1,0 +1,38 @@
+// ============================================================
+// medidas_tokens.dax — Medidas de consumo de tokens
+// Tabelas do modelo: fProcessamentos, dCalendario
+// Formato sugerido: número inteiro; "Caracteres por Token" com 2 casas decimais
+// ============================================================
+
+Tokens Entrada =
+SUM(fProcessamentos[tokens_entrada])
+
+Tokens Saída =
+SUM(fProcessamentos[tokens_saida])
+
+Total Tokens =
+SUM(fProcessamentos[total_tokens])
+
+Tokens Médios por Processamento =
+DIVIDE(
+    [Total Tokens],
+    [Total Processamentos]
+)
+
+Caracteres por Token =
+DIVIDE(
+    SUM(fProcessamentos[caracteres]),
+    [Total Tokens]
+)
+
+Tokens Mês Anterior =
+CALCULATE(
+    [Total Tokens],
+    DATEADD(dCalendario[data], -1, MONTH)
+)
+
+Variação Tokens % =
+DIVIDE(
+    [Total Tokens] - [Tokens Mês Anterior],
+    [Tokens Mês Anterior]
+)

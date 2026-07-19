@@ -1,0 +1,59 @@
+erDiagram
+    d_calendario ||--o{ f_processamentos : "data_id"
+    d_modelo     ||--o{ f_processamentos : "modelo_id"
+    d_operacao   ||--o{ f_processamentos : "operacao_id"
+    d_origem     ||--o{ f_processamentos : "origem_id"
+    d_status     ||--o{ f_processamentos : "status_id"
+
+    d_calendario {
+        integer data_id PK
+        date data
+        integer ano
+        integer numero_mes
+        string nome_mes
+        string ano_mes
+    }
+
+    d_modelo {
+        bigint modelo_id PK
+        string modelo_nome
+        string encoding_padrao
+        string fornecedor
+        boolean ativo
+    }
+
+    d_operacao {
+        smallint operacao_id PK
+        string operacao_codigo
+        string operacao_nome
+        string categoria
+    }
+
+    d_origem {
+        smallint origem_id PK
+        string origem_codigo
+        string origem_nome
+    }
+
+    d_status {
+        smallint status_id PK
+        string status_codigo
+        string status_nome
+        boolean sucesso
+    }
+
+    f_processamentos {
+        uuid processamento_id PK
+        integer data_id FK
+        bigint modelo_id FK
+        smallint operacao_id FK
+        smallint origem_id FK
+        smallint status_id FK
+        integer tokens_entrada
+        integer tokens_saida
+        integer total_tokens
+        numeric custo_total
+        numeric tempo_processamento_ms
+        boolean sucesso
+        boolean fallback_utilizado
+    }

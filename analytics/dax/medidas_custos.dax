@@ -1,0 +1,20 @@
+// ============================================================
+// medidas_custos.dax — Medidas de custo
+// Tabelas do modelo: fProcessamentos
+// Formato sugerido: moeda (ver dModelo/dOrigem para moeda de referência)
+// ============================================================
+
+Custo Entrada =
+SUM(fProcessamentos[custo_entrada])
+
+Custo Saída =
+SUM(fProcessamentos[custo_saida])
+
+Custo Total =
+SUM(fProcessamentos[custo_total])
+
+Custo Médio por Processamento =
+DIVIDE(
+    [Custo Total],
+    [Total Processamentos]
+)

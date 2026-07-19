@@ -1,0 +1,8 @@
+// ============================================================
+// medidas_desempenho.dax — Medidas de tempo de processamento
+// Tabelas do modelo: fProcessamentos
+// Formato sugerido: milissegundos com 2 casas decimais
+// ============================================================
+
+Tempo Médio Processamento (ms) =
+AVERAGE(fProcessamentos[tempo_processamento_ms])

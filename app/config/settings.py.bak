@@ -1,0 +1,33 @@
+"""Configurações da aplicação carregadas de variáveis de ambiente / .env."""
+
+from __future__ import annotations
+
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Configurações da Token Intelligence Platform.
+
+    Os valores podem ser sobrescritos por variáveis de ambiente ou por um
+    arquivo `.env` na raiz do projeto (veja `.env.example`).
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    database_url: str = (
+        "postgresql+psycopg://postgres:altere_a_senha@localhost:5432/token_intelligence"
+    )
+    database_echo: bool = False
+    salvar_texto_completo: bool = False
+
+
+@lru_cache
+def obter_configuracoes() -> Settings:
+    """Retorna as configurações da aplicação, carregadas uma única vez."""
+    return Settings()

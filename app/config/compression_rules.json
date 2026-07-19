@@ -1,0 +1,58 @@
+{
+  "_aviso": "Regras locais de compactação de prompts, aplicadas por texto puro (sem IA). Cada nível inclui as regras dos níveis anteriores. Adicione novas entradas em 'substituicoes' ({de, para}) ou 'remocoes' (lista de frases a remover) sem precisar alterar o código.",
+  "conservador": {
+    "saudacoes_isoladas": [
+      "olá",
+      "oi",
+      "bom dia",
+      "boa tarde",
+      "boa noite",
+      "prezados",
+      "prezado",
+      "prezada",
+      "caro",
+      "cara"
+    ],
+    "substituicoes": [],
+    "remocoes": []
+  },
+  "moderado": {
+    "substituicoes": [
+      {"de": "por favor, gostaria que você pudesse", "para": ""},
+      {"de": "gostaria que você pudesse", "para": ""},
+      {"de": "gostaria que você", "para": ""},
+      {"de": "preciso que você", "para": ""},
+      {"de": "quero que você", "para": ""},
+      {"de": "poderia por favor", "para": ""},
+      {"de": "de forma detalhada e completa", "para": "detalhadamente"},
+      {"de": "faça uma análise detalhada de", "para": "analise"},
+      {"de": "depois de analisar", "para": ""},
+      {"de": "me informe quais são", "para": "informe"},
+      {"de": "liste para mim", "para": "liste"}
+    ],
+    "remocoes": []
+  },
+  "agressivo": {
+    "substituicoes": [
+      {"de": "eu gostaria de solicitar que você", "para": ""},
+      {"de": "seria interessante se você pudesse", "para": ""},
+      {"de": "seria possível você", "para": ""},
+      {"de": "seria ótimo se você pudesse", "para": ""},
+      {"de": "seria importante que você", "para": ""},
+      {"de": "gostaria de pedir que", "para": ""},
+      {"de": "seria ideal que você", "para": ""}
+    ],
+    "remocoes": [
+      "segue abaixo",
+      "conforme solicitado",
+      "conforme solicitado anteriormente",
+      "espero que isso ajude",
+      "espero ter ajudado",
+      "agradeço desde já",
+      "desde já agradeço",
+      "fico no aguardo",
+      "fico à disposição",
+      "qualquer dúvida estou à disposição"
+    ]
+  }
+}

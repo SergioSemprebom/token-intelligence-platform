@@ -1,0 +1,30 @@
+# Controle de versão
+.git
+.gitignore
+
+# Ambientes virtuais e caches Python
+.venv
+__pycache__
+*.py[oc]
+.pytest_cache
+*.egg-info
+build
+dist
+wheels
+
+# Variáveis de ambiente locais (nunca copiar segredos para a imagem)
+.env
+.env.docker
+
+# Editores e IDEs
+.vscode
+.idea
+
+# Documentação e arquivos que não afetam a execução da imagem
+README.md
+CLAUDE.md
+*.md
+
+# Backups locais de configuração
+app/config/settings.py.bak
+app/config/settings.py.bak2

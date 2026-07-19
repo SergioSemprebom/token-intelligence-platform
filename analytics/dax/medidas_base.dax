@@ -1,0 +1,20 @@
+// ============================================================
+// medidas_base.dax — Medidas base de volume e comparação temporal
+// Tabelas do modelo: fProcessamentos, dCalendario
+// Formato sugerido: número inteiro para contagens; percentual para variações
+// ============================================================
+
+Total Processamentos =
+COUNTROWS(fProcessamentos)
+
+Processamentos Mês Anterior =
+CALCULATE(
+    [Total Processamentos],
+    DATEADD(dCalendario[data], -1, MONTH)
+)
+
+Variação Processamentos % =
+DIVIDE(
+    [Total Processamentos] - [Processamentos Mês Anterior],
+    [Processamentos Mês Anterior]
+)

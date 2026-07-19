@@ -1,0 +1,27 @@
+{
+  "_aviso": "Lista inicial de termos técnicos protegidos contra alteração pelo compactador de prompts. Adicione novos termos livremente (strings simples); a comparação ignora maiúsculas/minúsculas.",
+  "termos": [
+    "fConsumoConsolidado",
+    "BITS_COUNT",
+    "Auto Date/Time",
+    "Calculation Group",
+    "token_intelligence",
+    "processamentos",
+    "compactacoes_prompt",
+    "analytics.f_processamentos",
+    "analytics.d_calendario",
+    "analytics.d_modelo",
+    "analytics.d_operacao",
+    "analytics.d_origem",
+    "analytics.d_status",
+    "analytics.d_nivel_compactacao",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "gpt-3.5-turbo",
+    "o200k_base",
+    "tiktoken",
+    "PostgreSQL",
+    "Power BI",
+    "FastAPI"
+  ]
+}

@@ -1,0 +1,68 @@
+# Stack Docker da Token Intelligence Platform (Fase 5).
+#
+# Totalmente independente dos containers externos my-postgres (5433) e
+# my-pgadmin (15432): nomes de serviço, container_name, rede e volume
+# próprios, sem qualquer dependência ou referência a eles.
+#
+# Uso:
+#   docker compose --env-file .env.docker up --build -d
+#   docker compose --env-file .env.docker down        (mantém o volume)
+#   docker compose --env-file .env.docker down -v      (APAGA os dados)
+
+services:
+  postgres:
+    image: postgres:16.4
+    container_name: token-intelligence-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5434}:5432"
+    volumes:
+      - token_intelligence_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - token-intelligence-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: token-intelligence-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DATABASE_ECHO: ${DATABASE_ECHO:-false}
+      SALVAR_TEXTO_COMPLETO: ${SALVAR_TEXTO_COMPLETO:-false}
+    ports:
+      - "${API_HOST_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - token-intelligence-network
+
+networks:
+  token-intelligence-network:
+    name: token-intelligence-network
+
+volumes:
+  token_intelligence_postgres_data:
+    name: token_intelligence_postgres_data

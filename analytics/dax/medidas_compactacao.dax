@@ -1,0 +1,50 @@
+// ============================================================
+// medidas_compactacao.dax — Medidas do auditor/compactador de prompts (Fase 7)
+// Tabela do modelo: fCompactacoesPrompt
+// Formato sugerido: número inteiro para contagens; percentual para taxas/médias
+// ============================================================
+
+Total Compactações =
+COUNTROWS(fCompactacoesPrompt)
+
+Tokens Originais =
+SUM(fCompactacoesPrompt[tokens_originais])
+
+Tokens Compactados =
+SUM(fCompactacoesPrompt[tokens_compactados])
+
+Tokens Economizados =
+SUM(fCompactacoesPrompt[tokens_economizados])
+
+Redução Média % =
+AVERAGE(fCompactacoesPrompt[reducao_percentual])
+
+Compactações Aprovadas =
+CALCULATE(
+    [Total Compactações],
+    fCompactacoesPrompt[aprovado] = TRUE()
+)
+
+Taxa de Aprovação % =
+DIVIDE(
+    [Compactações Aprovadas],
+    [Total Compactações]
+)
+
+Compactações Aplicadas =
+CALCULATE(
+    [Total Compactações],
+    fCompactacoesPrompt[compactacao_aplicada] = TRUE()
+)
+
+Compactações sem Benefício =
+CALCULATE(
+    [Total Compactações],
+    fCompactacoesPrompt[compactacao_aplicada] = FALSE()
+)
+
+Economia Média por Compactação =
+DIVIDE(
+    [Tokens Economizados],
+    [Total Compactações]
+)
