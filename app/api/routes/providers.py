@@ -1,8 +1,8 @@
 """Gerenciamento seguro de provedores da Fase 8.1.
 
-A conexão inicial com OpenAI é simulada e usa somente uma chave fornecida na
-requisição ou a variável de ambiente OPENAI_ADMIN_API_KEY. A chave nunca é
-persistida, registrada em log ou devolvida ao cliente.
+A chave administrativa nunca é persistida, registrada em log ou devolvida ao
+cliente. O modo real valida a credencial diretamente na API administrativa da
+OpenAI; o modo simulado permite testar a interface sem chamada externa.
 """
 
 from __future__ import annotations
@@ -10,10 +10,12 @@ from __future__ import annotations
 import os
 from typing import Literal
 
+import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel, Field, SecretStr
 
 router = APIRouter(prefix="/api/v1/providers", tags=["Provedores"])
+OPENAI_USERS_URL = "https://api.openai.com/v1/organization/users"
 
 
 class OpenAIConnectionRequest(BaseModel):
@@ -39,48 +41,69 @@ def _mask_secret(value: str | None) -> str:
         return "não informada"
     if len(value) <= 8:
         return "••••••••"
-    return f"{value[:4]}••••••••{value[-4:]}"
+    return f"{value[:5]}••••••••{value[-4:]}"
 
 
 @router.get("", summary="Lista provedores e disponibilidade")
 def listar_provedores() -> list[dict[str, str]]:
     return [
-        {"nome": "OpenAI", "slug": "openai", "status": "simulacao_disponivel"},
-        {"nome": "Gemini", "slug": "gemini", "status": "planejado"},
-        {"nome": "Claude", "slug": "anthropic", "status": "planejado"},
-        {"nome": "OpenRouter", "slug": "openrouter", "status": "planejado"},
+        {
+            "nome": "OpenAI",
+            "slug": "openai",
+            "status": "teste_real_disponivel",
+            "tipo_credencial": "Admin API Key",
+        },
+        {"nome": "Gemini", "slug": "gemini", "status": "planejado", "tipo_credencial": "Google Cloud"},
+        {"nome": "Claude", "slug": "anthropic", "status": "planejado", "tipo_credencial": "Admin API Key"},
+        {"nome": "OpenRouter", "slug": "openrouter", "status": "planejado", "tipo_credencial": "Management Key"},
     ]
 
 
 @router.post(
     "/openai/testar",
     response_model=ProviderConnectionResponse,
-    summary="Testa uma conexão simulada com OpenAI",
+    summary="Testa uma conexão simulada ou real com OpenAI",
 )
-def testar_openai(payload: OpenAIConnectionRequest) -> ProviderConnectionResponse:
+async def testar_openai(payload: OpenAIConnectionRequest) -> ProviderConnectionResponse:
     supplied = payload.api_key.get_secret_value() if payload.api_key else None
     secret = supplied or os.getenv("OPENAI_ADMIN_API_KEY")
 
-    if not payload.modo_simulacao and not secret:
-        raise ValueError(
-            "Informe uma chave administrativa da OpenAI ou configure OPENAI_ADMIN_API_KEY no arquivo .env."
+    if payload.modo_simulacao:
+        return ProviderConnectionResponse(
+            provedor="openai",
+            nome=payload.nome,
+            status="simulado",
+            credencial_mascarada=_mask_secret(secret),
+            orcamento_mensal=payload.orcamento_mensal,
+            moeda=payload.moeda,
+            mensagem="Conexão simulada validada. Nenhuma chamada externa foi realizada.",
         )
 
-    if payload.modo_simulacao:
-        status = "simulado"
-        mensagem = "Conexão simulada validada. Nenhuma chamada externa foi realizada."
-    else:
-        status = "configurado_para_teste_real"
-        mensagem = (
-            "Credencial recebida com segurança. O teste real será habilitado na Fase 8.2."
+    if not secret:
+        raise ValueError(
+            "Informe uma Admin API Key da OpenAI ou configure OPENAI_ADMIN_API_KEY no arquivo .env."
         )
+
+    headers = {"Authorization": f"Bearer {secret}", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            response = await client.get(OPENAI_USERS_URL, headers=headers, params={"limit": 1})
+    except httpx.TimeoutException as exc:
+        raise ValueError("A OpenAI não respondeu dentro do tempo esperado.") from exc
+    except httpx.HTTPError as exc:
+        raise ValueError("Não foi possível estabelecer comunicação segura com a OpenAI.") from exc
+
+    if response.status_code in {401, 403}:
+        raise ValueError("Chave administrativa inválida ou sem permissão de proprietário da organização.")
+    if response.status_code >= 400:
+        raise ValueError(f"A OpenAI recusou o teste de conexão (HTTP {response.status_code}).")
 
     return ProviderConnectionResponse(
         provedor="openai",
         nome=payload.nome,
-        status=status,
+        status="conectado",
         credencial_mascarada=_mask_secret(secret),
         orcamento_mensal=payload.orcamento_mensal,
         moeda=payload.moeda,
-        mensagem=mensagem,
+        mensagem="Credencial administrativa validada com sucesso na OpenAI.",
     )
