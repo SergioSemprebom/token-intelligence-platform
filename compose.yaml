@@ -1,13 +1,8 @@
-# Stack Docker da Token Intelligence Platform (Fase 5).
-#
-# Totalmente independente dos containers externos my-postgres (5433) e
-# my-pgadmin (15432): nomes de serviço, container_name, rede e volume
-# próprios, sem qualquer dependência ou referência a eles.
+# Stack Docker da Token Intelligence Platform.
 #
 # Uso:
 #   docker compose --env-file .env.docker up --build -d
-#   docker compose --env-file .env.docker down        (mantém o volume)
-#   docker compose --env-file .env.docker down -v      (APAGA os dados)
+#   docker compose --env-file .env.docker down
 
 services:
   postgres:
@@ -48,6 +43,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       DATABASE_ECHO: ${DATABASE_ECHO:-false}
       SALVAR_TEXTO_COMPLETO: ${SALVAR_TEXTO_COMPLETO:-false}
+      PROVIDER_ENCRYPTION_KEY: ${PROVIDER_ENCRYPTION_KEY}
     ports:
       - "${API_HOST_PORT:-8000}:8000"
     healthcheck:
