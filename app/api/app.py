@@ -23,9 +23,9 @@ app = FastAPI(
     title="Token Intelligence Platform API",
     description=(
         "API local para análise e governança de tokens, custos, prompts, Power BI "
-        "e conexões multiprovedor."
+        "e conexões multiprovedor com credenciais criptografadas."
     ),
-    version="0.8.1",
+    version="0.8.3",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -55,7 +55,7 @@ app.include_router(providers.router)
 def raiz() -> dict[str, str]:
     return {
         "aplicacao": "Token Intelligence Platform API",
-        "versao": "0.8.1",
+        "versao": "0.8.3",
         "documentacao": "/docs",
         "dashboard": "/api/v1/dashboard/resumo",
         "provedores": "/api/v1/providers",
