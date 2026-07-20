@@ -9,6 +9,7 @@ app/services, sem duplicar lógica. Para executar:
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routes import (
@@ -16,6 +17,7 @@ from app.api.routes import (
     comparator,
     compression,
     costs,
+    dashboard,
     health,
     historico,
     splitter,
@@ -28,13 +30,21 @@ app = FastAPI(
         "API local para análise e governança de tokens de aplicações com modelos de "
         "linguagem. Reúne contagem de tokens, divisão de textos, comparação de "
         "tokenização entre modelos, estimativa de custos, auditoria e compactação "
-        "local de prompts, e a camada analítica para Power BI, reutilizando as "
-        "mesmas regras de negócio do menu interativo de terminal."
+        "local de prompts, camada analítica para Power BI e o dashboard web "
+        "multiprovedor da Fase 8."
     ),
-    version="0.7.0",
+    version="0.8.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(health.router)
@@ -45,6 +55,7 @@ app.include_router(costs.router)
 app.include_router(historico.router)
 app.include_router(analytics.router)
 app.include_router(compression.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/", tags=["Raiz"], summary="Informações gerais da API")
@@ -52,8 +63,9 @@ def raiz() -> dict[str, str]:
     """Retorna informações básicas sobre a API e o link para a documentação."""
     return {
         "aplicacao": "Token Intelligence Platform API",
-        "versao": "0.7.0",
+        "versao": "0.8.0",
         "documentacao": "/docs",
+        "dashboard": "/api/v1/dashboard/resumo",
     }
 
 
