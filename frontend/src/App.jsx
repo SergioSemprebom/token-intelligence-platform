@@ -1,38 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Activity,
-  Bell,
-  Bot,
-  Boxes,
-  CircleDollarSign,
-  Gauge,
-  LayoutDashboard,
-  RefreshCw,
-  Settings,
-  Sparkles,
-  WalletCards,
-  Zap,
+  Activity, Bell, Bot, Boxes, CircleDollarSign, Copy, Eye, EyeOff, Gauge,
+  LayoutDashboard, RefreshCw, Settings, ShieldCheck, Sparkles, WalletCards, X, Zap,
 } from 'lucide-react'
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+  Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000'
-
 const fallback = {
-  periodo: '2026-07',
-  moeda: 'USD',
-  gasto_mes: 42.7,
-  orcamento_mensal: 100,
-  projecao_mes: 67.3,
-  tokens_total: 8420500,
-  requisicoes_total: 12480,
+  periodo: '2026-07', moeda: 'USD', gasto_mes: 42.7, orcamento_mensal: 100,
+  projecao_mes: 67.3, tokens_total: 8420500, requisicoes_total: 12480,
   economia_estimada: 18.4,
   provedores: [
     { nome: 'OpenAI', slug: 'openai', status: 'demonstracao', tokens: 3200000, requisicoes: 4850, custo: 18.6 },
@@ -41,12 +19,8 @@ const fallback = {
     { nome: 'OpenRouter', slug: 'openrouter', status: 'planejado', tokens: 520500, requisicoes: 600, custo: 1.2 },
   ],
   consumo_diario: [
-    { dia: '01', custo: 3.2 },
-    { dia: '05', custo: 5.1 },
-    { dia: '10', custo: 6.8 },
-    { dia: '15', custo: 8.4 },
-    { dia: '20', custo: 9.7 },
-    { dia: '25', custo: 9.5 },
+    { dia: '01', custo: 3.2 }, { dia: '05', custo: 5.1 }, { dia: '10', custo: 6.8 },
+    { dia: '15', custo: 8.4 }, { dia: '20', custo: 9.7 }, { dia: '25', custo: 9.5 },
   ],
 }
 
@@ -54,156 +28,72 @@ const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'USD
 const number = new Intl.NumberFormat('pt-BR')
 
 function MetricCard({ icon: Icon, label, value, detail }) {
-  return (
-    <article className="metric-card">
-      <div className="metric-icon"><Icon size={20} /></div>
-      <div>
-        <span>{label}</span>
-        <strong>{value}</strong>
-        <small>{detail}</small>
-      </div>
-    </article>
-  )
+  return <article className="metric-card"><div className="metric-icon"><Icon size={20} /></div><div><span>{label}</span><strong>{value}</strong><small>{detail}</small></div></article>
+}
+
+function ProviderModal({ onClose }) {
+  const [form, setForm] = useState({ nome: 'Minha conta OpenAI', api_key: '', orcamento_mensal: 100, moeda: 'USD', modo_simulacao: true })
+  const [showKey, setShowKey] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
+
+  async function testConnection(event) {
+    event.preventDefault(); setLoading(true); setError(''); setResult(null)
+    try {
+      const response = await fetch(`${API_URL}/api/v1/providers/openai/testar`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+      })
+      const body = await response.json()
+      if (!response.ok) throw new Error(body.detail ?? 'Não foi possível testar a conexão.')
+      setResult(body)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
+  }
+
+  async function copyMasked() {
+    if (result?.credencial_mascarada) await navigator.clipboard.writeText(result.credencial_mascarada)
+  }
+
+  return <div className="modal-backdrop" role="presentation">
+    <section className="provider-modal" role="dialog" aria-modal="true" aria-label="Conectar OpenAI">
+      <div className="modal-header"><div><span>FASE 8.1</span><h2>Conectar OpenAI</h2><p>Teste em modo simulado ou valide uma Admin API Key real.</p></div><button className="icon-button" onClick={onClose}><X size={19} /></button></div>
+      <div className="security-note"><ShieldCheck size={20} /><div><strong>Credencial protegida</strong><p>A chave é enviada somente ao backend para validação e não é devolvida completa.</p></div></div>
+      <form onSubmit={testConnection}>
+        <label>Nome da conexão<input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required minLength={3} /></label>
+        <label>Admin API Key<div className="secret-field"><input type={showKey ? 'text' : 'password'} placeholder="sk-admin-..." value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} disabled={form.modo_simulacao} /><button type="button" onClick={() => setShowKey(!showKey)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
+        <div className="form-grid"><label>Orçamento mensal<input type="number" min="1" step="0.01" value={form.orcamento_mensal} onChange={(e) => setForm({ ...form, orcamento_mensal: Number(e.target.value) })} /></label><label>Moeda<select value={form.moeda} onChange={(e) => setForm({ ...form, moeda: e.target.value })}><option>USD</option><option>BRL</option></select></label></div>
+        <label className="toggle-row"><input type="checkbox" checked={form.modo_simulacao} onChange={(e) => setForm({ ...form, modo_simulacao: e.target.checked })} /><span><strong>Modo de simulação</strong><small>Nenhuma chamada externa será realizada.</small></span></label>
+        {error && <div className="result-card error"><strong>Falha na conexão</strong><p>{error}</p></div>}
+        {result && <div className="result-card success"><strong>{result.status === 'conectado' ? 'OpenAI conectada' : 'Simulação concluída'}</strong><p>{result.mensagem}</p><div className="credential-row"><code>{result.credencial_mascarada}</code><button type="button" onClick={copyMasked}><Copy size={15} /> Copiar</button></div></div>}
+        <div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancelar</button><button className="primary-button" disabled={loading}>{loading && <RefreshCw size={16} className="spin" />}{loading ? 'Testando...' : 'Testar conexão'}</button></div>
+      </form>
+    </section>
+  </div>
 }
 
 function App() {
   const [data, setData] = useState(fallback)
   const [loading, setLoading] = useState(true)
   const [source, setSource] = useState('Demonstração')
+  const [providerModal, setProviderModal] = useState(false)
 
   async function loadDashboard() {
     setLoading(true)
-    try {
-      const response = await fetch(`${API_URL}/api/v1/dashboard/resumo`)
-      if (!response.ok) throw new Error('Falha ao consultar a API')
-      setData(await response.json())
-      setSource('API conectada')
-    } catch {
-      setData(fallback)
-      setSource('Demonstração local')
-    } finally {
-      setLoading(false)
-    }
+    try { const response = await fetch(`${API_URL}/api/v1/dashboard/resumo`); if (!response.ok) throw new Error(); setData(await response.json()); setSource('API conectada') }
+    catch { setData(fallback); setSource('Demonstração local') } finally { setLoading(false) }
   }
+  useEffect(() => { loadDashboard() }, [])
+  const budgetPercent = useMemo(() => Math.min(100, (data.gasto_mes / data.orcamento_mensal) * 100), [data])
 
-  useEffect(() => {
-    loadDashboard()
-  }, [])
-
-  const budgetPercent = useMemo(
-    () => Math.min(100, (data.gasto_mes / data.orcamento_mensal) * 100),
-    [data],
-  )
-
-  return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark"><Sparkles size={22} /></div>
-          <div><strong>Token Intelligence</strong><span>Platform</span></div>
-        </div>
-
-        <nav>
-          <a className="active" href="#dashboard"><LayoutDashboard size={18} /> Visão geral</a>
-          <a href="#providers"><Boxes size={18} /> Provedores</a>
-          <a href="#usage"><Activity size={18} /> Consumo</a>
-          <a href="#budgets"><WalletCards size={18} /> Orçamentos</a>
-          <a href="#alerts"><Bell size={18} /> Alertas</a>
-          <a href="#settings"><Settings size={18} /> Configurações</a>
-        </nav>
-
-        <div className="sidebar-footer">
-          <Bot size={18} />
-          <div><strong>Fase 8</strong><span>Dashboard multiprovedor</span></div>
-        </div>
-      </aside>
-
-      <main>
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">CENTRAL DE GOVERNANÇA DE IA</p>
-            <h1>Visão geral do consumo</h1>
-            <p>Monitore tokens, custos, requisições e orçamento em um único lugar.</p>
-          </div>
-          <button onClick={loadDashboard} disabled={loading}>
-            <RefreshCw size={17} className={loading ? 'spin' : ''} /> Atualizar
-          </button>
-        </header>
-
-        <section className="status-row">
-          <span className="status-dot" /> {source}
-          <span>Período: {data.periodo}</span>
-        </section>
-
-        <section className="metrics-grid">
-          <MetricCard icon={CircleDollarSign} label="Gasto no mês" value={money.format(data.gasto_mes)} detail={`${budgetPercent.toFixed(1)}% do orçamento`} />
-          <MetricCard icon={Gauge} label="Tokens utilizados" value={number.format(data.tokens_total)} detail="Entrada, saída e cache" />
-          <MetricCard icon={Zap} label="Requisições" value={number.format(data.requisicoes_total)} detail="Todos os provedores" />
-          <MetricCard icon={Sparkles} label="Economia estimada" value={money.format(data.economia_estimada)} detail="Otimizações sugeridas" />
-        </section>
-
-        <section className="dashboard-grid">
-          <article className="panel chart-panel">
-            <div className="panel-header">
-              <div><span>EVOLUÇÃO DE CUSTO</span><h2>Consumo diário</h2></div>
-              <span className="projection">Projeção: {money.format(data.projecao_mes)}</span>
-            </div>
-            <div className="chart-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.consumo_diario}>
-                  <defs>
-                    <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4fd1c5" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#4fd1c5" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#26384d" />
-                  <XAxis dataKey="dia" stroke="#7890a8" />
-                  <YAxis stroke="#7890a8" />
-                  <Tooltip contentStyle={{ background: '#0f1d2c', border: '1px solid #294158', borderRadius: 12 }} />
-                  <Area type="monotone" dataKey="custo" stroke="#4fd1c5" fill="url(#costGradient)" strokeWidth={3} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </article>
-
-          <article className="panel budget-panel">
-            <div className="panel-header"><div><span>CONTROLE FINANCEIRO</span><h2>Orçamento mensal</h2></div></div>
-            <div className="budget-circle" style={{ '--progress': `${budgetPercent * 3.6}deg` }}>
-              <div><strong>{budgetPercent.toFixed(0)}%</strong><span>utilizado</span></div>
-            </div>
-            <div className="budget-values">
-              <div><span>Consumido</span><strong>{money.format(data.gasto_mes)}</strong></div>
-              <div><span>Limite</span><strong>{money.format(data.orcamento_mensal)}</strong></div>
-            </div>
-          </article>
-        </section>
-
-        <section className="panel providers-panel" id="providers">
-          <div className="panel-header">
-            <div><span>INTEGRAÇÕES</span><h2>Consumo por provedor</h2></div>
-            <button className="secondary-button"><Boxes size={16} /> Gerenciar provedores</button>
-          </div>
-          <div className="table-wrap">
-            <table>
-              <thead><tr><th>Provedor</th><th>Status</th><th>Tokens</th><th>Requisições</th><th>Custo mensal</th></tr></thead>
-              <tbody>
-                {data.provedores.map((provider) => (
-                  <tr key={provider.slug}>
-                    <td><div className="provider-name"><div className={`provider-logo ${provider.slug}`}>{provider.nome[0]}</div><strong>{provider.nome}</strong></div></td>
-                    <td><span className={`badge ${provider.status}`}>{provider.status.replaceAll('_', ' ')}</span></td>
-                    <td>{number.format(provider.tokens)}</td>
-                    <td>{number.format(provider.requisicoes)}</td>
-                    <td><strong>{money.format(provider.custo)}</strong></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-    </div>
-  )
+  return <div className="app-shell">
+    <aside className="sidebar"><div className="brand"><div className="brand-mark"><Sparkles size={22} /></div><div><strong>Token Intelligence</strong><span>Platform</span></div></div><nav><a className="active" href="#dashboard"><LayoutDashboard size={18} /> Visão geral</a><button onClick={() => setProviderModal(true)}><Boxes size={18} /> Provedores</button><a href="#usage"><Activity size={18} /> Consumo</a><a href="#budgets"><WalletCards size={18} /> Orçamentos</a><a href="#alerts"><Bell size={18} /> Alertas</a><a href="#settings"><Settings size={18} /> Configurações</a></nav><div className="sidebar-footer"><Bot size={18} /><div><strong>Fase 8.1</strong><span>Conexões seguras</span></div></div></aside>
+    <main id="dashboard"><header className="topbar"><div><p className="eyebrow">CENTRAL DE GOVERNANÇA DE IA</p><h1>Visão geral do consumo</h1><p>Monitore tokens, custos, requisições e orçamento em um único lugar.</p></div><button onClick={loadDashboard} disabled={loading}><RefreshCw size={17} className={loading ? 'spin' : ''} /> Atualizar</button></header>
+      <section className="status-row"><span className="status-dot" /> {source}<span>Período: {data.periodo}</span></section>
+      <section className="metrics-grid"><MetricCard icon={CircleDollarSign} label="Gasto no mês" value={money.format(data.gasto_mes)} detail={`${budgetPercent.toFixed(1)}% do orçamento`} /><MetricCard icon={Gauge} label="Tokens utilizados" value={number.format(data.tokens_total)} detail="Entrada, saída e cache" /><MetricCard icon={Zap} label="Requisições" value={number.format(data.requisicoes_total)} detail="Todos os provedores" /><MetricCard icon={Sparkles} label="Economia estimada" value={money.format(data.economia_estimada)} detail="Otimizações sugeridas" /></section>
+      <section className="dashboard-grid"><article className="panel chart-panel"><div className="panel-header"><div><span>EVOLUÇÃO DE CUSTO</span><h2>Consumo diário</h2></div><span className="projection">Projeção: {money.format(data.projecao_mes)}</span></div><div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data.consumo_diario}><defs><linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#4fd1c5" stopOpacity={0.45} /><stop offset="95%" stopColor="#4fd1c5" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#26384d" /><XAxis dataKey="dia" stroke="#7890a8" /><YAxis stroke="#7890a8" /><Tooltip contentStyle={{ background: '#0f1d2c', border: '1px solid #294158', borderRadius: 12 }} /><Area type="monotone" dataKey="custo" stroke="#4fd1c5" fill="url(#costGradient)" strokeWidth={3} /></AreaChart></ResponsiveContainer></div></article><article className="panel budget-panel"><div className="panel-header"><div><span>CONTROLE FINANCEIRO</span><h2>Orçamento mensal</h2></div></div><div className="budget-circle" style={{ '--progress': `${budgetPercent * 3.6}deg` }}><div><strong>{budgetPercent.toFixed(0)}%</strong><span>utilizado</span></div></div><div className="budget-values"><div><span>Consumido</span><strong>{money.format(data.gasto_mes)}</strong></div><div><span>Limite</span><strong>{money.format(data.orcamento_mensal)}</strong></div></div></article></section>
+      <section className="panel providers-panel" id="providers"><div className="panel-header"><div><span>INTEGRAÇÕES</span><h2>Consumo por provedor</h2></div><button className="secondary-button" onClick={() => setProviderModal(true)}><Boxes size={16} /> Gerenciar provedores</button></div><div className="table-wrap"><table><thead><tr><th>Provedor</th><th>Status</th><th>Tokens</th><th>Requisições</th><th>Custo mensal</th></tr></thead><tbody>{data.provedores.map((provider) => <tr key={provider.slug}><td><div className="provider-name"><div className={`provider-logo ${provider.slug}`}>{provider.nome[0]}</div><strong>{provider.nome}</strong></div></td><td><span className={`badge ${provider.status}`}>{provider.status.replaceAll('_', ' ')}</span></td><td>{number.format(provider.tokens)}</td><td>{number.format(provider.requisicoes)}</td><td><strong>{money.format(provider.custo)}</strong></td></tr>)}</tbody></table></div></section>
+    </main>{providerModal && <ProviderModal onClose={() => setProviderModal(false)} />}
+  </div>
 }
 
 export default App
