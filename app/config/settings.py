@@ -1,28 +1,23 @@
 """Configurações da Token Intelligence Platform."""
 
+from functools import lru_cache
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from functools import lru_cache
+
 
 class Settings(BaseSettings):
     """Carrega as configurações da aplicação a partir do arquivo .env."""
 
     database_url: str = Field(
-        default=(
-            "postgresql+psycopg://postgres:postgres"
-            "@localhost:5433/token_intelligence"
-        ),
+        default="postgresql+psycopg://postgres:postgres@localhost:5433/token_intelligence",
         validation_alias="DATABASE_URL",
     )
-
-    database_echo: bool = Field(
-        default=False,
-        validation_alias="DATABASE_ECHO",
-    )
-
-    salvar_texto_completo: bool = Field(
-        default=False,
-        validation_alias="SALVAR_TEXTO_COMPLETO",
+    database_echo: bool = Field(default=False, validation_alias="DATABASE_ECHO")
+    salvar_texto_completo: bool = Field(default=False, validation_alias="SALVAR_TEXTO_COMPLETO")
+    provider_encryption_key: str | None = Field(
+        default=None,
+        validation_alias="PROVIDER_ENCRYPTION_KEY",
     )
 
     model_config = SettingsConfigDict(
@@ -32,11 +27,12 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+
 @lru_cache
 def obter_configuracoes() -> Settings:
     """Retorna uma instância reutilizável das configurações da aplicação."""
     return Settings()
 
-# Alias para compatibilidade com módulos que utilizem nomes diferentes.
+
 get_settings = obter_configuracoes
 settings = obter_configuracoes()
